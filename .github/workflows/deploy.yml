@@ -1,0 +1,99 @@
+name: deploy
+
+# Deploy de docs.revolupay.es:
+#   - push a main → publica en raíz (latest)
+#   - push de tag vX.Y → publica también en /vX/ para conservar histórico
+#
+# Requiere los secrets:
+#   AWS_ROLE_TO_ASSUME           rol IAM con permisos s3:PutObject sobre el bucket
+#                                + cloudfront:CreateInvalidation sobre la distribution
+#   AWS_REGION                   eu-west-1
+#   S3_BUCKET                    revolupay-api-docs-prod
+#   CLOUDFRONT_DISTRIBUTION_ID   E1ABCD...
+#
+# OIDC (sin keys de larga duración) en vez de access key + secret. Si prefieres
+# keys clásicas, sustituye el bloque "configure-aws-credentials" con role-to-assume
+# por uno con aws-access-key-id / aws-secret-access-key (menos seguro).
+
+on:
+  push:
+    branches: [main]
+    tags:    ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write          # necesario para OIDC con AWS
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Lint OpenAPI specs
+        run: |
+          for spec in $(find . -name '*.yaml' -path '*/api-*-doc.yaml'); do
+            echo "::group::lint $spec"
+            npx --yes @redocly/cli@latest lint "$spec"
+            echo "::endgroup::"
+          done
+
+      - name: Build Redoc bundles
+        run: |
+          # Bundlea cada YAML al index.html de su carpeta.
+          for spec in $(find . -name 'api-*-doc.yaml'); do
+            dir="$(dirname "$spec")"
+            echo "::group::build $spec → $dir/index.html"
+            npx --yes @redocly/cli@latest build-docs "$spec" \
+              --output "$dir/index.html" \
+              --theme.openapi.theme.colors.primary.main='#5b8def' \
+              --theme.openapi.disableSearch=false
+            echo "::endgroup::"
+          done
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Determine deploy prefix
+        id: prefix
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            # v1.2.3 → /v1/
+            major="$(echo "${GITHUB_REF#refs/tags/v}" | cut -d. -f1)"
+            echo "prefix=v${major}/" >> "$GITHUB_OUTPUT"
+            echo "invalidation=/v${major}/*" >> "$GITHUB_OUTPUT"
+          else
+            echo "prefix=" >> "$GITHUB_OUTPUT"
+            echo "invalidation=/*" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync . "s3://${{ secrets.S3_BUCKET }}/${{ steps.prefix.outputs.prefix }}" \
+            --exclude '.git/*' \
+            --exclude '.github/*' \
+            --exclude 'README.md' \
+            --exclude '_setup-aws.md' \
+            --exclude 'node_modules/*' \
+            --delete \
+            --cache-control 'public, max-age=300, must-revalidate'
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "${{ steps.prefix.outputs.invalidation }}"

@@ -1,0 +1,17 @@
+# Build artifacts (Redoc bundles generados por el GHA, no commiteamos)
+**/index.html
+!/index.html
+
+# Node
+node_modules/
+package-lock.json
+.npm/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
