@@ -1,0 +1,1666 @@
+openapi: 3.0.2
+info:
+  title: RevoluPAY Merchant API
+  version: 1.0.0
+  description: "Merchant TPV service for registered businesses."
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: login
+    description: 'Returns authentication object that contains valid token for the rest of the API calls.'
+  
+paths:
+  /login:
+    get:
+      tags:
+        - login
+      summary: 'Returns authentication object that contains valid token for the rest of the API calls.'
+      description: ''
+      operationId: login
+      parameters:
+        - name: rv-authorization
+          in: header
+          description: Base64 encode de user:password para la aplicación
+          required: true
+          schema:
+            type: string
+        - name: x-api-key
+          in: header
+          description: Api key
+          required: true
+          schema:
+            type: string
+      security:
+        - api_key: []
+      
+      responses:
+        '200':
+          description: Successfully login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: object
+                    properties:
+                      status:
+                        type: integer
+                        default: 200
+                      message:
+                        type: string
+                      token:
+                        type: string
+        '401':
+          description: Unauthorized user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: object
+                    properties:
+                      status:
+                        type: integer
+                        default: 204
+                      message:
+                        type: string
+        '500':
+          description: Internal error
+  '/create_client':
+    post:
+      tags:
+        - create_client
+      summary: Create a client to be able to tokenize their cards. Returns the client's token
+      description: "To know the card tokenization process: https://paylands.docs.apiary.io/#introduction/sdk-javascript"
+      operationId: createClient
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClientRequest'
+      parameters:
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: Client created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'
+        '400':
+          description: Error creating client
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The customer_ext_id field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error
+  '/create_client/{language}':
+    post:
+      tags:
+        - create_client
+      summary: Create a client to be able to tokenize their cards. Returns the client's token
+      description: "To know the card tokenization process: https://paylands.docs.apiary.io/#introduction/sdk-javascript"
+      operationId: createClientLanguage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClientRequest'
+      parameters:
+        - name: language
+          in: path
+          description: 'Language in which messages are received '
+          required: true
+          schema:
+            type: string
+            example: spanish
+            default: english
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: Client created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'
+        '400':
+          description: Error creating client
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The customer_ext_id field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error        
+  '/create_order':
+    post:
+      tags:
+        - create_order
+      summary: It generates a payment order and returns the redirect url to the payment letter.
+      description: ''
+      operationId: createOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      parameters:
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The amount field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error    
+  '/create_order/{language}':
+    post:
+      tags:
+        - create_order
+      summary: It generates a payment order and returns the redirect url to the payment letter.
+      description: ''
+      operationId: createOrderLanguage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      parameters:
+        - name: language
+          in: path
+          description: 'Language in which messages are received '
+          required: true
+          schema:
+            type: string
+            example: spanish
+            default: english
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The amount field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error          
+  '/attach_receipt':
+    post:
+      tags:
+        - attach_receipt
+      summary: ''
+      description: ''
+      operationId: attachReceipt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiptRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReceiptRequest'
+      parameters:
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: file attached successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The order_code field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error    
+  '/attach_receipt/{language}':
+    post:
+      tags:
+        - attach_receipt
+      summary: ''
+      description: ''
+      operationId: attachReceiptLanguage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiptRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReceiptRequest'
+      parameters:
+        - name: language
+          in: path
+          description: 'Language in which messages are received '
+          required: true
+          schema:
+            type: string
+            example: spanish
+            default: english
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: file attached successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The order_code field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error    
+  '/get_order':
+    post:
+      tags:
+        - get_order
+      summary: ''
+      description: ''
+      operationId: getOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_code:
+                  type: string
+                  description: 'Unique identifier of the order. (OrderResponse.Order.order.code)'
+                  example: wgByP.288 
+              required:
+                - order_code
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                order_code:
+                  type: string
+                  description: 'Unique identifier of the order. (OrderResponse.Order.order.code)'
+                  example: wgByP.288 
+              required:
+                - order_code
+      parameters:
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: file attached successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The order_code field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error    
+  '/get_order/{language}':
+    post:
+      tags:
+        - get_order
+      summary: ''
+      description: ''
+      operationId: getOrderLanguage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_code:
+                  type: string
+                  description: 'Unique identifier of the order. (OrderResponse.Order.order.code)'
+                  example: wgByP.288 
+              required:
+                - order_code
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                order_code:
+                  type: string
+                  description: 'Unique identifier of the order. (OrderResponse.Order.order.code)'
+                  example: wgByP.288 
+              required:
+                - order_code
+      parameters:
+        - name: language
+          in: path
+          description: 'Language in which messages are received '
+          required: true
+          schema:
+            type: string
+            example: spanish
+            default: english
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: file attached successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The order_code field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error   
+  '/request_refun_order':
+    post:
+      tags:
+        - request_refun_order
+      summary: ''
+      description: ''
+      operationId: requestRefunOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_code:
+                  type: string
+                  description: 'Unique identifier of the order. (OrderResponse.Order.order.code)'
+                  example: wgByP.288 
+                amount:
+                  type: number
+                  format: integer
+                  description: amount in cents that is required to return
+                  example: 1020
+              required:
+                - order_code
+                - amount
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                order_code:
+                  type: string
+                  description: 'Unique identifier of the order. (OrderResponse.Order.order.code)'
+                  example: wgByP.288 
+              required:
+                - order_code
+      parameters:
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: successfull
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The order_code field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error  
+  '/create_moto_order':
+    post:
+      tags:
+        - create_moto_order
+      summary: Generates a payment order that is emailed to the customer
+      description: ''
+      operationId: createMotoOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderMotoRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderMotoRequest'
+      parameters:
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderMotoResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The amount field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error   
+  '/create_moto_order/{language}':
+    post:
+      tags:
+        - create_moto_order
+      summary: Generates a payment order that is emailed to the customer
+      description: ''
+      operationId: createMotoOrderLanguage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderMotoRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderMotoRequest'
+      parameters:
+        - name: language
+          in: path
+          description: 'Language in which messages are received '
+          required: true
+          schema:
+            type: string
+            example: spanish
+            default: english
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderMotoResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The amount field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error   
+  '/attach_receipt_moto':
+    post:
+      tags:
+        - attach_receipt_moto
+      summary: ''
+      description: ''
+      operationId: attachReceiptMoto
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiptRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReceiptRequest'
+      parameters:
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: file attached successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderMotoResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The order_code field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error    
+  '/attach_receipt_moto/{language}':
+    post:
+      tags:
+        - attach_receipt_moto
+      summary: ''
+      description: ''
+      operationId: attachReceiptMotoLanguage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiptRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReceiptRequest'
+      parameters:
+        - name: language
+          in: path
+          description: 'Language in which messages are received '
+          required: true
+          schema:
+            type: string
+            example: spanish
+            default: english
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: file attached successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderMotoResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The order_code field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error    
+  '/get_moto_order':
+    post:
+      tags:
+        - get_moto_order
+      summary: ''
+      description: ''
+      operationId: getOrderMoto
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_code:
+                  type: string
+                  description: 'Unique identifier of the order. (OrderMotoResponse.Order.order.code)'
+                  example: wgByP.288 
+              required:
+                - order_code
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                order_code:
+                  type: string
+                  description: 'Unique identifier of the order. (OrderMotoResponse.Order.order.code)'
+                  example: wgByP.288 
+              required:
+                - order_code
+      parameters:
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: file attached successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderMotoResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The order_code field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error    
+  '/get_moto_order/{language}':
+    post:
+      tags:
+        - get_moto_order
+      summary: ''
+      description: ''
+      operationId: getOrderMotoLanguage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_code:
+                  type: string
+                  description: 'Unique identifier of the order. (OrderMotoResponse.Order.order.code)'
+                  example: wgByP.288 
+              required:
+                - order_code
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                order_code:
+                  type: string
+                  description: 'Unique identifier of the order. (OrderMotoResponse.Order.order.code)'
+                  example: wgByP.288 
+              required:
+                - order_code
+      parameters:
+        - name: language
+          in: path
+          description: 'Language in which messages are received '
+          required: true
+          schema:
+            type: string
+            example: spanish
+            default: english
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: file attached successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderMotoResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The order_code field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error    
+  '/request_refun_moto_order':
+    post:
+      tags:
+        - request_refun_moto_order
+      summary: ''
+      description: ''
+      operationId: requestRefunOrderMoto
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_code:
+                  type: string
+                  description: 'Unique identifier of the order. (OrderResponse.Order.order.code)'
+                  example: wgByP.288 
+                amount:
+                  type: number
+                  format: integer
+                  description: amount in cents that is required to return
+                  example: 1020
+              required:
+                - order_code
+                - amount
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                order_code:
+                  type: string
+                  description: 'Unique identifier of the order. (OrderResponse.Order.order.code)'
+                  example: wgByP.288 
+              required:
+                - order_code
+      parameters:
+        - name: RV-SESS-T
+          in: header
+          description: 'auth token'
+          schema:
+            type: string
+          required: true
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: successfull
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderMotoResponse'
+        '400':
+          description: Error creating order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 400
+                    description: message code
+                  message:
+                    type: string
+                    example: The order_code field is required.
+                    description: message error
+              
+        '401':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 401
+                    description: message code
+                  message:
+                    type: string
+                    example: Unauthorized
+                    description: message error
+        '500':
+          description: Internal error  
+components:
+  schemas:
+    ClientRequest:
+      type: object
+      properties:
+        customer_ext_id:
+          type: string
+          description: Unique identifier of the client on the system consuming the API.
+          example: CL1-000-CV-98
+      required:
+        - customer_ext_id 
+        
+    ClientResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+          description: message code
+        message:
+          type: string
+          example: success.
+        result:
+          $ref: '#/components/schemas/Client'
+          
+    Client:
+      type: object
+      properties:
+        customer_ext_id:
+          type: string
+          description: Unique identifier of the client on the system consuming the API.
+          example: CL1-000-CV-98
+        token:
+          type: string
+          description: Token required to tokenize customer cards
+          example: 05e3d31577277f9376ab5f5397304107d73f0eb11c501c3b3255f5fe111e707a64c3ddf7f7cc7f25d141cdb1c53deff04bc2a16c57c6b42935d68aa8ab353cd6
+         
+    OrderRequest:
+      type: object
+      properties:
+        currency:
+          type: string
+          description: Currency in which the charge will be made
+          enum: [EUR]
+          example: EUR
+        amount:
+          type: number
+          format: integer
+          description: Amount in cents in which the charge will be made
+          example: 1020
+        description:
+          type: string
+          description: Concept for which the charge is made 
+          example: Rocker T-shirt x 1
+        order_ext_id: 
+          type: string
+          description: 'External identifier of the order, is usually the order identifier in the system of the user of this API.'
+          example: RTH-000001
+        customer_ext_id:
+          type: string
+          description: Unique identifier of the client on the system consuming the API.
+          example: CL1-000-CV-98
+        source_uuid:
+          type: string
+          description: Tokenized card identifier.
+          example: 77777777-7777-4777-9777-777777777777
+        url_post:
+          type: string
+          description: Notification url where the API will send the result via POST once the sender makes the payment.
+          example: https://midominio.com/guid/ghhghx0987ffe
+        url_ok:
+          type: string
+          description: url to which the sender will be redirected when the payment is successful 
+          example: https://midominio.com/guid/ghhghx0987ffe
+        url_ko:
+          type: string
+          description: url to which the sender will be redirected when the payment is not successful 
+          example: https://midominio.com/guid/ghhghx0987ffe 
+        clientFirstName:
+          type: string
+          description: Cardholder name. Field required by VISA. 
+          example: Alan
+        clientLastName:
+          type: string
+          description: cardholder's last name. Field required by VISA. 
+          example: Brito Prieto
+        clientEmail:
+          type: string
+          description: cardholder's email. Field required by VISA. 
+          example: alan.brito.prieto@example.com
+        clientPhonePrefix:
+          type: number
+          description: Telephone prefix of the cardholder. Field required by VISA. It is recommended that at least an e-mail or telephone number be sent 
+          example: 34
+        clientPhoneNumber:
+          type: number
+          description: Telephone number of the cardholder. Field required by VISA. It is recommended that at least an e-mail or telephone number be sent 
+          example: 938930586
+        clientAddressCity:
+          type: string
+          description: Billing address city. Field required by VISA.
+          example: Sant Cugat del Vallés.
+        clientAddressCountryISO3:
+          type: string
+          description: Country of billing address, ISO 3 format. Field required by VISA.
+          example: ESP
+        clientAddress:
+          type: string
+          description: Billing address. Field required by VISA.
+          example: Vallespir, 19 1
+        clientAddressZip:
+          type: string
+          description: Billing address zip code. Field required by VISA.
+          example: 08173
+        clientAddressState:
+          type: string
+          description: State/province of billing address. Field required by VISA.
+          example: Barcelona
+      required:
+      - currency
+      - amount
+      - description
+      
+    OrderResponse:
+        type: object
+        properties:
+          code:
+            type: integer
+            example: 200
+            description: message code
+          message:
+            type: string
+            example: success.
+          result:
+            $ref: '#/components/schemas/Order'
+            
+    Order:
+      type: object
+      properties:
+        order:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Unique identifier of the order.
+              example: wgByP.288
+            status:
+              type: string
+              enum: [pending,accepted,refused,paid out]
+              example: pending
+            internal_code:
+              type: string
+              description: Internal identifier of the order.
+              example: TPV210526288
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            environment:
+              type: string
+              enum: [prod,dev]
+            receipt_file:
+              type: string
+              description: 'Document that justifies that the service / product was provided / delivered to the end customer.'
+              example: "https://www.revolupay.es/global/uploads/xxxxxxxxxxxxxxxxxx.pdf"
+        details:
+          type: object
+          properties:
+            amount:
+              type: number
+              format: float
+              description: customer charge amount
+              example: 10.20
+            currency:
+              type: string
+              description: Currency in which the charge will be made
+              enum: [EUR,USD]
+              example: USD
+            status:
+              type: string
+              enum: [pending,accepted,refused,paid out]
+              example: pending
+            url_post:
+              type: string
+              description: Notification url where the API will send the result via POST once the sender makes the payment.
+              example: https://midominio.com/guid/ghhghx0987ffe
+            url_ok:
+              type: string
+              description: url to which the sender will be redirected when the payment is successful 
+              example: https://midominio.com/guid/ghhghx0987ffe
+            url_ko:
+              type: string
+              description: url to which the sender will be redirected when the payment is not successful 
+              example: https://midominio.com/guid/ghhghx0987ffe 
+            order_ext_id: 
+              type: string
+              description: 'External identifier of the order, is usually the order identifier in the system of the user of this API.'
+              example: RTH-000001
+            description:
+              type: string
+              description: Concept for which the charge is made 
+              example: Rocker T-shirt x 1
+            payment_uuid: 
+              type: string
+              description: 'Unique identifier of the order in the processor'
+              example: 88888888-8888-4888-9888-888888888888
+            payment_status: 
+              type: string
+              description: 'see possible values in: https://paylands.docs.apiary.io/#introduction/posibles-estados-de-la-orden'
+              example: CREATED
+            environment:
+              type: string
+              enum: [prod,dev]
+            token:
+              type: string
+              description: 'Token corresponding to the order in the processing system'
+              example: 'e2a78c1fe075245606a9c772af890af3960bd6f56692b57bc6ef42562aeb020f6bff83763c8395230ea0f5d1f4558dc6eba1ae5f478fec0ed9c20139620ee93a'
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            redirect_url:
+              type: string
+              description: 'url to which the client should be redirected'
+              example: "https://ws-paylands.paynopain.com/v1/sandbox/payment/process/e2a78c1fe075245606a9c772af890af3960bd6f56692b57bc6ef42562aeb020f6bff83763c8395230ea0f5d1f4558dc6eba1ae5f478fec0ed9c20139620ee93a?lang=en"
+              
+    ReceiptRequest:
+      type: object
+      properties:
+        order_code:
+          type: string
+          description: 'Unique identifier of the order. (OrderResponse.Order.order.code)'
+          example: wgByP.288
+        receipt_file:
+          type: string
+          format: base64encode
+          description: 'Base64 encoded file. Document that justifies that the service / product was provided / delivered to the end customer. Allowed formats (gif,jpg,png,pdf)'
+      required:
+        - order_code
+        - receipt_file
+        
+    OrderMotoRequest:
+      type: object
+      properties:
+        currency:
+          type: string
+          description: Currency in which the charge will be made
+          enum: [EUR,USD]
+          example: USD
+        amount:
+          type: number
+          format: integer
+          description: Amount in cents in which the charge will be made
+          example: 1020
+        email:
+          type: string
+          format: email
+          description: Customer email to send the payment order
+          example: minombre@midominio.com
+        subject:
+          type: string
+          description: subject of the email that is sent to the client
+          example: Payment Order RTH-000001
+        details:
+          type: string
+          description: Details of the concept for which the charge is made 
+          example: black size XL t-shirt
+        description:
+          type: string
+          description: Concept for which the charge is made 
+          example: Rocker T-shirt x 1
+        order_ext_id: 
+          type: string
+          description: 'External identifier of the order, is usually the order identifier in the system of the user of this API.'
+          example: RTH-000001
+        customer_ext_id:
+          type: string
+          description: Unique identifier of the client on the system consuming the API.
+          example: CL1-000-CV-98
+        url_post:
+          type: string
+          description: Notification url where the API will send the result via POST once the sender makes the payment.
+          example: https://midominio.com/guid/ghhghx0987ffe
+        url_ok:
+          type: string
+          description: url to which the sender will be redirected when the payment is successful 
+          example: https://midominio.com/guid/ghhghx0987ffe
+        url_ko:
+          type: string
+          description: url to which the sender will be redirected when the payment is not successful 
+          example: https://midominio.com/guid/ghhghx0987ffe 
+      required:
+      - currency
+      - amount
+      - description
+      - email
+      - subject
+    OrderMotoResponse:
+        type: object
+        properties:
+          code:
+            type: integer
+            example: 200
+            description: message code
+          message:
+            type: string
+            example: success.
+          result:
+            $ref: '#/components/schemas/OrderMoto'
+            
+    OrderMoto:
+      type: object
+      properties:
+        order:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Unique identifier of the order.
+              example: wgByP.288
+            status:
+              type: string
+              enum: [pending,accepted,refused,paid out]
+              example: pending
+            internal_code:
+              type: string
+              description: Internal identifier of the order.
+              example: TPV210526288
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            environment:
+              type: string
+              enum: [prod,dev]
+            receipt_file:
+              type: string
+              description: 'Document that justifies that the service / product was provided / delivered to the end customer.'
+              example: "https://www.revolupay.es/global/uploads/xxxxxxxxxxxxxxxxxx.pdf"
+        details:
+          type: object
+          properties:
+            amount:
+              type: number
+              format: float
+              description: customer charge amount
+              example: 10.20
+            currency:
+              type: string
+              description: Currency in which the charge will be made
+              enum: [EUR,USD]
+              example: USD
+            status:
+              type: string
+              enum: [pending,accepted,refused,paid out]
+              example: pending
+            order_ext_id: 
+              type: string
+              description: 'External identifier of the order, is usually the order identifier in the system of the user of this API.'
+              example: RTH-000001
+            description:
+              type: string
+              description: Concept for which the charge is made 
+              example: Rocker T-shirt x 1
+            email:
+              type: string
+              format: email
+              description: Customer email to send the payment order
+              example: minombre@midominio.com
+            subject:
+              type: string
+              description: subject of the email that is sent to the client
+              example: Payment Order RTH-000001
+            details:
+              type: string
+              description: Details of the concept for which the charge is made 
+              example: black size XL t-shirt
+            payment_uuid: 
+              type: string
+              description: 'Unique identifier of the order in the processor'
+              example: 88888888-8888-4888-9888-888888888888
+            payment_status: 
+              type: string
+              description: 'see possible values in: https://paylands.docs.apiary.io/#introduction/posibles-estados-de-la-orden'
+              example: CREATED
+            environment:
+              type: string
+              enum: [prod,dev]
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+  requestBodies:
+    Client:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClientRequest'
+    Order:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OrderRequest'
+    
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: x-api-key
+      in: header
