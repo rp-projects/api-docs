@@ -1358,7 +1358,7 @@ components:
         clientAddressZip:
           type: string
           description: Billing address zip code. Field required by VISA.
-          example: 08173
+          example: '08173'
         clientAddressState:
           type: string
           description: State/province of billing address. Field required by VISA.
